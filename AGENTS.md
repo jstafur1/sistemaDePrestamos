@@ -24,6 +24,8 @@ Si alguien repite su documento de identidad (Número de cédula o tarjeta de ide
 
 La persona encargada de los equipos (Administrador) tiene una vista aparte donde recibe las solicitudes y este será el que marque como prestado en el sistema cuando efectivamente entregue el equipo. Y cuando el solicitante devuelva el equipo, el equipo queda Disponible, salvo que la devolución tenga novedad: entonces queda Bloqueado.
 
+El administrador tiene una protección minima, el administrador tiene un acceso mediante una clave compartida en una variable de entorno para acessar a su vista.
+
 Los tiempos de prestamo de los equipos son  
 
 Portátiles = 7 días 
@@ -81,7 +83,7 @@ Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de at
 
 Se descarta un login para los usuarios.
 Vencimiento automático de solicitudes.
-La vista de administrador no tiene autenticación en esta versión (riesgo anotado en ASSUMPTIONS.md)
+(riesgo anotado en ASSUMPTIONS.md)
 
 ## Convenciones 
 
