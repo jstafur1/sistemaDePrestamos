@@ -12,7 +12,7 @@ Cuando se realiza una solicitud el equipo queda apartado.
 
 Para realizar una solicitud de préstamo, debe ingresar unos datos:  
 
-- Nombre completo  
+- Nombre completo  (TODO EN MAYÚSCULAS DEBE SER ESCRITO)
 
 - Correo institucional 
 
@@ -21,6 +21,11 @@ Para realizar una solicitud de préstamo, debe ingresar unos datos:
 - Código universitario (Opcional si es docente)
 
 Si alguien repite su documento de identidad (Número de cédula o tarjeta de identidad ) con otro nombre debe ser rechazada la solicitud.
+
+
+Un Equipo es una unidad física con código de inventario único,
+perteneciente a una categoría. El stock de una categoría no se guarda:
+se calcula contando sus equipos en estado Disponible.
 
 La persona encargada de los equipos (Administrador) tiene una vista aparte donde recibe las solicitudes y este será el que marque como prestado en el sistema cuando efectivamente entregue el equipo. Y cuando el solicitante devuelva el equipo, el equipo queda Disponible, salvo que la devolución tenga novedad: entonces queda Bloqueado.
 
@@ -81,7 +86,7 @@ Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de at
 
 ## Fuera de alcance 
 
-Se descarta un login para los usuarios.
+Se descarta un login para los usuarios estudiantes y docentes.
 Vencimiento automático de solicitudes.
 (riesgo anotado en ASSUMPTIONS.md)
 
