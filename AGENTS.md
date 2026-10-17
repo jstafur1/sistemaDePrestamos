@@ -12,7 +12,7 @@ Cuando se realiza una solicitud el equipo queda apartado.
 
 Para realizar una solicitud de préstamo, debe ingresar unos datos:  
 
-- Nombre completo  (TODO EN MAYÚSCULAS DEBE SER ESCRITO)
+- Nombre completo (en mayúsculas, ver S-13)
 
 - Correo institucional 
 
@@ -23,13 +23,8 @@ Para realizar una solicitud de préstamo, debe ingresar unos datos:
 Si alguien repite su documento de identidad (Número de cédula o tarjeta de identidad ) con otro nombre debe ser rechazada la solicitud.
 
 
-Un Equipo es una unidad física con código de inventario único,
-perteneciente a una categoría. El stock de una categoría no se guarda:
-se calcula contando sus equipos en estado Disponible.
-
 La persona encargada de los equipos (Administrador) tiene una vista aparte donde recibe las solicitudes y este será el que marque como prestado en el sistema cuando efectivamente entregue el equipo. Y cuando el solicitante devuelva el equipo, el equipo queda Disponible, salvo que la devolución tenga novedad: entonces queda Bloqueado.
 
-El administrador tiene una protección minima, el administrador tiene un acceso mediante una clave compartida en una variable de entorno para acessar a su vista.
 
 Los tiempos de prestamo de los equipos son  
 
@@ -50,6 +45,18 @@ Días de atraso = fecha en el calendario menos la fecha de vencimiento.
 El sistema debe tener en cuenta sus fechas de entrega y devolución. En el momento en que se cumpla el plazo de devolución empezará a contar los dias de retraso. Todos los equipos que tengan retraso deben estar en una lista que el administrador puede seleccionar en su vista. 
 
 
+## Modelo de dominio
+Cinco entidades: CategoriaEquipo (con plazo_dias), Equipo (unidad física
+con código de inventario único), Solicitante (identificado por número de
+documento único), Prestamo y Devolucion (una por préstamo devuelto; guarda
+la novedad si la hay).
+El plazo se guarda en la categoría. Al entregar se calcula y se guarda
+fecha_vencimiento en el préstamo; cambiar el plazo después no afecta a los
+préstamos ya entregados.
+El stock de una categoría no se guarda: es el número de equipos Disponible.
+
+
+
 ## Stack 
 
 Python 3.11 
@@ -66,13 +73,15 @@ Alembic
 
 La cadena de conexión va en .env como DATABASE_URL 
 
+Variables de entorno (en .env, no versionado; .env.example lista los
+nombres sin valores): DATABASE_URL y ADMIN_API_KEY.
+Las rutas del administrador exigen ADMIN_API_KEY en un encabezado.
+
 
 ## Reglas del negocio (No negociables)
 
-Un estudiante o docente con un préstamo vencido sin devolver no puede pedir otro equipo. Tan pronto el administrador registre la devolución de este, ya tiene la opcion disponible. Un solicitante puede tener dos equipos prestados a la vez sin estar vencido. 
-
 Los estados del equipo son = Disponible, Prestado, Mantenimiento, Bloqueado, Apartado.
-Los estados del préstamo son = Solicitado, entregado, devuelto, cancelado.
+Los estados del préstamo son = Solicitado, Entregado, Devuelto, Cancelado.
 
 Un equipo marcado en mantenimiento no aparece como disponible aunque esté físicamente en el almacén. 
 
@@ -82,13 +91,34 @@ Una devolución puede registrarse con novedad (daño, faltante), y eso bloquea e
 
 Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de atraso. 
 
+- No hay tope de préstamos por persona.
+- No puede solicitar quien tenga al menos un préstamo Entregado con
+  fecha_vencimiento anterior a hoy. Se levanta al registrar la devolución
+  de esos préstamos.
+- Cada solicitud pide un solo equipo: el solicitante elige categoría y el
+  sistema asigna una unidad Disponible.
+- El tipo de solicitante (docente o estudiante) se guarda. El código
+  universitario es obligatorio para estudiantes y opcional para docentes.
   
 
-## Fuera de alcance 
+## Fuera de alcance
+- Login, usuarios, sesiones y roles.
+- Envío o registro de notificaciones por correo.
+- Vencimiento automático de solicitudes (el administrador las cancela, S-06).
 
-Se descarta un login para los usuarios estudiantes y docentes.
-Vencimiento automático de solicitudes.
-(riesgo anotado en ASSUMPTIONS.md)
+
+## Transiciones permitidas (cualquier otra se rechaza con 409)
+| Evento | Quién | Préstamo | Equipo | Condición |
+|---|---|---|---|---|
+| Solicitar | Solicitante | nuevo → Solicitado | Disponible → Apartado | Hay unidad Disponible en la categoría; sin préstamo Entregado vencido; documento y nombre coherentes |
+| Entregar | Administrador | Solicitado → Entregado ¿| Apartado → Prestado | Guarda entregado_en y fecha_vencimiento |
+| Devolver sin novedad | Administrador | Entregado → Devuelto | Prestado → Disponible | |
+| Devolver con novedad | Administrador | Entregado → Devuelto | Prestado → Bloqueado | Tipo y descripción de la novedad obligatorios |
+| Liberar bloqueo | Administrador | sin cambio | Bloqueado → Disponible | Registra liberado_en y liberado_por |
+| Cancelar solicitud | Administrador | Solicitado → Cancelado | Apartado → Disponible | Atómico |
+| Enviar a mantenimiento | Administrador | sin cambio | Disponible → Mantenimiento | Solo desde Disponible |
+| Sacar de mantenimiento | Administrador | sin cambio | Mantenimiento → Disponible | |
+
 
 ## Convenciones 
 
@@ -108,6 +138,18 @@ Vencimiento automático de solicitudes.
 
 - Las clases y variables van escritas en español. 
 
+- app/services/reglas.py: funciones puras, sin SQLAlchemy ni FastAPI y sin
+  leer el reloj (¿está vencido?, días de atraso, ¿puede solicitar?,
+  nombres equivalentes).
+- app/services/<recurso>.py: casos de uso. Reciben la Session y la fecha
+  de hoy, cargan datos, llaman a reglas.py y guardan. Una operación es
+  una transacción.
+- tests/unit prueba solo reglas.py. tests/integration prueba casos de uso
+  y API contra PostgreSQL real.
+- La integridad crítica vive también en la base de datos (restricciones
+  únicas y CHECK), no solo en el código.
+
+- Al apartar, la garantía es el índice único parcial de la base de datos; si la inserción falla, se reintenta con otra unidad (máximo [N] intentos) y no se usan bloqueos de fila (S-10).
 
 ## Comportamiento del agente 
 
@@ -122,3 +164,6 @@ Vencimiento automático de solicitudes.
   
 
 ## Historial de correcciones al agente 
+- 2026-10-16: el agente leyó "puede tener dos equipos prestados a la vez"
+  como un tope de dos. La regla correcta es que no hay tope. Se reescribió
+  la frase y se agregó S-08.
