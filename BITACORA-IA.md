@@ -134,3 +134,27 @@ tiene letras y números y actualicé .env.] [Resultado: `select 1` imprimió 1.]
 **Lección.** Diagnosticar por descarte: verificar cada pieza (usuario, host,
 puerto, base, contraseña) antes de cambiar nada, y no documentar una causa
 que la evidencia no respalda.
+
+## 2026-10-19 · Plan de la base de pruebas (Parte 2.2)
+
+**Qué pedí.** Al agente, en modo Planning y sin código, un plan para la
+configuración tipada, un endpoint /health y las primeras pruebas, con
+SecretStr y carga perezosa. [Modelo usado: ...]
+
+**Qué hizo bien.** Tests antes de la implementación, sin tocar .env, sin
+instalar dependencias ni hacer commit, y sin añadir cosas fuera del alcance.
+
+**Qué corregí.**
+- Ubicó test_health.py en tests/integration y solo lo escaló como duda
+  cuando lo revisé. La causa estaba en AGENTS.md, que definía mal unit e
+  integration; lo reescribí por dependencia externa.
+- Su supuesto de que el .env "nunca se lee" en los tests era incorrecto;
+  la prueba de ello es que un test de "sin variables" debe fallar y solo
+  falla si el archivo real no se lee.
+- La comprobación de carga perezosa no podía fallar; la cambié por
+  cache_info().currsize == 0.
+- Faltaba el test de variables ausentes y el manejo de variables extra.
+
+**Observación.** El agente se autoevaluó con una tabla de ✅ que declaraba
+cumplido un punto que no lo estaba; mi revisión tiene que ser la fuente de
+verdad, no su resumen.
