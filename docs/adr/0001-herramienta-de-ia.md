@@ -36,7 +36,5 @@ commits y pushes.
   acepté y qué rechacé.
 
 ## Evidencia
-- Modelo seleccionado en Antigravity al momento de esta decisión:
-  Gemini 3.8 Flash Medium.
-- Los modos Planning/Fast y el uso de AGENTS.md en la raíz los conocí
-  por guías de la comunidad, no por documentación oficial. 
+- Modelo seleccionado en Antigravity al momento de esta decisión: Gemini 3.8 Flash Medium.
+- Los modos Planning/Fast y el uso de AGENTS.md en la raíz los conocí por guías de la comunidad, no por documentación oficial. 
