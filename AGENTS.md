@@ -156,6 +156,10 @@ Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de at
 
 - Al apartar, la garantía es el índice único parcial de la base de datos; si la inserción falla, se reintenta con otra unidad (máximo [N] intentos) y no se usan bloqueos de fila (S-10).
 
+- Los tests nunca leen el .env real: un fixture autouse en
+  tests/conftest.py ejecuta cada test en un directorio temporal vacío y
+  limpia la caché de obtener_config() antes y después.
+
 ## Comportamiento del agente 
 
 - Antes de escribir código, propone un plan y espera aprobación. 
@@ -182,3 +186,9 @@ Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de at
   definición ambigua en AGENTS.md (unit = solo reglas.py; integration = API
   contra PostgreSQL real), que dejaba sin lugar a las pruebas de API sin base
   de datos. Se redefinió la separación por dependencia externa.
+
+  - 2026-10-19: el agente supuso que, si un test fijaba las variables de
+  entorno con monkeypatch, pydantic-settings no leía el .env. Es falso: el
+  archivo se lee igual si existe en el directorio actual. Se corrigió con un
+  fixture que cambia el directorio de trabajo a uno temporal, y con un test
+  de "sin variables" que falla si el .env real se está leyendo.
