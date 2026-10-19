@@ -77,6 +77,7 @@ Variables de entorno (en .env, no versionado; .env.example lista los
 nombres sin valores): DATABASE_URL y ADMIN_API_KEY.
 Las rutas del administrador exigen ADMIN_API_KEY en un encabezado.
 
+tzdata (obligatorio en Windows: sin él, zoneinfo no encuentra America/Bogota)
 
 ## Reglas del negocio (No negociables)
 
@@ -161,6 +162,10 @@ Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de at
 
 - No hace commit ni push, no instala dependencias sin avisar, no lee ni escribe .env. 
 
+- Antes de ejecutar comandos de Python, verifica el intérprete con
+  `python -c "import sys; print(sys.executable)"`; debe apuntar a
+  venv\Scripts\python.exe. Usa `python -m pip` y `python -m pytest`, y
+  ejecuta siempre desde la raíz del proyecto.
   
 
 ## Historial de correcciones al agente 
