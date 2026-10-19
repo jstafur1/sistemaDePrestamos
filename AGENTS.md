@@ -145,8 +145,12 @@ Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de at
 - app/services/<recurso>.py: casos de uso. Reciben la Session y la fecha
   de hoy, cargan datos, llaman a reglas.py y guardan. Una operación es
   una transacción.
-- tests/unit prueba solo reglas.py. tests/integration prueba casos de uso
-  y API contra PostgreSQL real.
+- Los tests se separan por dependencia externa, no por capa:
+  - tests/unit: no usan base de datos ni red. Incluye reglas.py y las
+    pruebas de la API con TestClient que no abren sesión de base de datos
+    (por ejemplo /health, validación de entrada y clave de administrador).
+  - tests/integration: usan PostgreSQL real (casos de uso y endpoints que
+    persisten datos).
 - La integridad crítica vive también en la base de datos (restricciones
   únicas y CHECK), no solo en el código.
 
@@ -172,3 +176,9 @@ Consulta obligatoria: Listado de préstamos vencidos a la fecha, con días de at
 - 2026-10-16: el agente leyó "puede tener dos equipos prestados a la vez"
   como un tope de dos. La regla correcta es que no hay tope. Se reescribió
   la frase y se agregó S-08.
+
+  - 2026-10-19: el agente ubicó test_health.py en tests/integration y solo lo
+  escaló como duda al revisarlo contra mi lista de revisión. La causa era una
+  definición ambigua en AGENTS.md (unit = solo reglas.py; integration = API
+  contra PostgreSQL real), que dejaba sin lugar a las pruebas de API sin base
+  de datos. Se redefinió la separación por dependencia externa.
